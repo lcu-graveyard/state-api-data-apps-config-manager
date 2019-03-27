@@ -7,25 +7,28 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using LCU.State.API.DataApps.ConfigManager.Harness;
+using System.Runtime.Serialization;
 using LCU.State.API.DataApps.ConfigManager.Models;
+using LCU.State.API.DataApps.ConfigManager.Harness;
 
 namespace LCU.State.API.DataApps.ConfigManager
 {
-    public static class Refresh
+    [Serializable]
+    [DataContract]
+    public class ToggleAddingAppRequest
     {
-        [FunctionName("Refresh")]
+    }
+
+    public static class ToggleAddingApp
+    {
+        [FunctionName("ToggleAddingApp")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            return await req.Manage<dynamic, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
+            return await req.Manage<SetActiveAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                await mgr.Ensure();
-
-                return await mgr.WhenAll(
-                    mgr.LoadApplications()
-                );
+                return await mgr.ToggleAddNew(AddNewTypes.App);
             });
         }
     }
