@@ -53,7 +53,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             var apps = await appGraph.ListApplications(details.EnterpriseAPIKey);
 
-            // state.Applications = apps.Where(app => app.Container == "lcu-data-apps").ToList();
+            state.Applications = apps.Where(app => app.Container == "lcu-data-apps").ToList();
 
             return state;
         }
