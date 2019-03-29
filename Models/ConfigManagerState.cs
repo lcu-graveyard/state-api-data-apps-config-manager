@@ -18,9 +18,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Models
         public virtual Application ActiveApp { get; set; }
 
         [DataMember]
-        public virtual bool Loading { get; set; }
+        public virtual DAFViewConfiguration ActiveView { get; set; }
 
         [DataMember]
-        public virtual string VisibilityFlow { get; set; }
+        public virtual bool Loading { get; set; }
     }
 }

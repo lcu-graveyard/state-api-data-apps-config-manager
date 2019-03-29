@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Runtime.Serialization;
+using LCU.Graphs.Registry.Enterprises;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using LCU.State.API.DataApps.ConfigManager.Harness;
 
@@ -15,22 +16,22 @@ namespace LCU.State.API.DataApps.ConfigManager
 {
     [Serializable]
     [DataContract]
-    public class SetVisibilityFlowRequest
+    public class SaveAppViewRequest
     {
         [DataMember]
-        public virtual string Flow { get; set; }
+        public virtual DAFViewConfiguration View { get; set; }
     }
 
-    public static class SetVisibilityFlow
+    public static class SaveAppView
     {
-        [FunctionName("SetVisibilityFlow")]
+        [FunctionName("SaveAppView")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            return await req.Manage<SetVisibilityFlowRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
+            return await req.Manage<SaveAppViewRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                return await mgr.SetVisibilityFlow(reqData.Flow);
+                return await mgr.SaveAppView(reqData.View);
             });
         }
     }
