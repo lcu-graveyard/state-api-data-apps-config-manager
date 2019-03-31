@@ -89,7 +89,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
                 }
             }
 
-            return state;
+            return await SetActiveApp(state.ActiveApp);
         }
 
         public virtual async Task<ConfigManagerState> SaveDataApp(Application app)
