@@ -81,7 +81,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
 
                 log.LogInformation($"Saving DAF App: {view.ToJSON()}");
 
-                status = await unpackView2(view, details.EnterpriseAPIKey);
+                status = await unpackView(view, details.EnterpriseAPIKey);
 
                 if (status)
                 {
@@ -144,43 +144,6 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         #endregion
 
         #region Helpers
-
-		protected virtual async Task<Status> unpackView2(DAFViewConfiguration viewApp, string entApiKey)
-		{
-			if (viewApp.PackageVersion != "dev-stream")
-			{
-                log.LogInformation($"Unpacking view: {viewApp.ToJSON()}");
-
-				var ent = await entGraph.LoadByPrimaryAPIKey(entApiKey);
-
-				var client = new HttpClient();
-
-				var npmUnpackUrl = Environment.GetEnvironmentVariable("NPM_PUBLIC_URL");
-
-				var npmUnpackCode = Environment.GetEnvironmentVariable("NPM_PUBLIC_CODE");
-
-				var npmUnpack = $"{npmUnpackUrl}/api/npm-unpack?code={npmUnpackCode}&pkg={viewApp.NPMPackage}&version={viewApp.PackageVersion}";
-
-				npmUnpack += $"&applicationId={viewApp.ApplicationID}&enterpriseId={ent.ID}";
-
-                log.LogInformation($"Running NPM Unpack at: {npmUnpack}");
-                
-				var response = await client.GetAsync(npmUnpack);
-
-				var statusStr = await response.Content.ReadAsStringAsync();
-
-				var status = statusStr.IsNullOrEmpty() || statusStr.StartsWith("<") ? Status.GeneralError.Clone(statusStr) : statusStr.FromJSON<Status>();
-
-				if (status)
-					viewApp.PackageVersion = status.Metadata["Version"].ToString();
-
-                log.LogInformation($"NPM Unpacked: {status.ToJSON()}");
-                
-				return status;
-			}
-			else
-				return Status.Success.Clone("Success", new { PackageVersion = viewApp.PackageVersion });
-		}
         #endregion
     }
 
