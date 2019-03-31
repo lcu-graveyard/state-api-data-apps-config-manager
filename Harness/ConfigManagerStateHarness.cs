@@ -17,11 +17,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
     public class ConfigManagerStateHarness : LCUStateHarness<ConfigManagerState>
     {
         #region Fields
-        protected readonly ApplicationGraph appGraph;
-
         protected readonly string container;
-
-        protected readonly EnterpriseGraph entGraph;
 
         const string lcuPathRoot = "_lcu";
         #endregion
@@ -33,11 +29,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         public ConfigManagerStateHarness(HttpRequest req, ILogger log, ConfigManagerState state)
             : base(req, log, state)
         {
-            appGraph = req.LoadGraph<ApplicationGraph>();
-
             this.container = "Default";
-
-            entGraph = req.LoadGraph<EnterpriseGraph>();
         }
         #endregion
 
@@ -76,8 +68,6 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             if (state.ActiveApp != null)
             {
-                log.LogInformation($"Saving View App: {view?.ToJSON()}");
-
                 view.ApplicationID = state.ActiveApp.ID;
 
                 //  TODO:   Probably need to expose this as an advanced setting in the future or something
@@ -91,7 +81,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
 
                 log.LogInformation($"Saving DAF App: {view.ToJSON()}");
 
-                status = await unpackView(view, details.EnterpriseAPIKey);
+                status = await unpackView2(view, details.EnterpriseAPIKey);
 
                 if (status)
                 {
@@ -154,6 +144,43 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         #endregion
 
         #region Helpers
+
+		protected virtual async Task<Status> unpackView2(DAFViewConfiguration viewApp, string entApiKey)
+		{
+			if (viewApp.PackageVersion != "dev-stream")
+			{
+                log.LogInformation($"Unpacking view: {viewApp.ToJSON()}");
+
+				var ent = await entGraph.LoadByPrimaryAPIKey(entApiKey);
+
+				var client = new HttpClient();
+
+				var npmUnpackUrl = Environment.GetEnvironmentVariable("NPM_PUBLIC_URL");
+
+				var npmUnpackCode = Environment.GetEnvironmentVariable("NPM_PUBLIC_CODE");
+
+				var npmUnpack = $"{npmUnpackUrl}/api/npm-unpack?code={npmUnpackCode}&pkg={viewApp.NPMPackage}&version={viewApp.PackageVersion}";
+
+				npmUnpack += $"&applicationId={viewApp.ApplicationID}&enterpriseId={ent.ID}";
+
+                log.LogInformation($"Running NPM Unpack at: {npmUnpack}");
+                
+				var response = await client.GetAsync(npmUnpack);
+
+				var statusStr = await response.Content.ReadAsStringAsync();
+
+				var status = statusStr.IsNullOrEmpty() || statusStr.StartsWith("<") ? Status.GeneralError.Clone(statusStr) : statusStr.FromJSON<Status>();
+
+				if (status)
+					viewApp.PackageVersion = status.Metadata["Version"].ToString();
+
+                log.LogInformation($"NPM Unpacked: {status.ToJSON()}");
+                
+				return status;
+			}
+			else
+				return Status.Success.Clone("Success", new { PackageVersion = viewApp.PackageVersion });
+		}
         #endregion
     }
 
