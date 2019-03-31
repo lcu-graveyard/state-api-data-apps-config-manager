@@ -38,6 +38,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             state.Applications = new List<Application>();
 
+            if (state.ActiveApp != null)
+                await SetActiveApp(state.ActiveApp);
+
             return state;
         }
 
