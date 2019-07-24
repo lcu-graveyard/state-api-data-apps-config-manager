@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="LCU.Runtime" Version="1.8.19204.4" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
