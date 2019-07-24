@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fathym;
 using Fathym.Design.Singleton;
 using LCU.Graphs.Registry.Enterprises;
+using LCU.Graphs.Registry.Enterprises.Apps;
 using LCU.Runtime;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using Microsoft.AspNetCore.Http;
