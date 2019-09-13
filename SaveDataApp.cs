@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using LCU.State.API.DataApps.ConfigManager.Harness;
-using LCU.Graphs.Registry.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Apps;
 
 namespace LCU.State.API.DataApps.ConfigManager

@@ -5,9 +5,10 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Fathym;
 using Fathym.Design.Singleton;
-using LCU.Graphs.Registry.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Apps;
-using LCU.Runtime;
+using LCU.Graphs.Registry.Enterprises.IDE;
+using LCU.Personas.Client.Applications;
+using LCU.StateAPI;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,8 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         #region Fields
         protected readonly string container;
 
+        protected readonly ApplicationManagerClient appMgr;
+
         const string lcuPathRoot = "_lcu";
         #endregion
 
@@ -31,6 +34,8 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
             : base(req, log, state)
         {
             this.container = "Default";
+
+            this.appMgr = req.ResolveClient<ApplicationManagerClient>(log);
         }
         #endregion
 
@@ -47,9 +52,11 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
 
         public virtual async Task<ConfigManagerState> LoadApplications()
         {
-            var apps = await appGraph.ListApplications(details.EnterpriseAPIKey);
+            var apps = await appMgr.ListApplications(details.EnterpriseAPIKey);
 
-            state.Applications = apps.Where(app => app.Container == "lcu-data-apps").ToList();
+            state.Applications = apps.Model.Where(app => app.Container == "lcu-data-apps").ToList();
+
+            state.ActiveApp = state.Applications.FirstOrDefault(app => app.ID == state.ActiveApp?.ID);
 
             return state;
         }
@@ -58,9 +65,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             if (state.ActiveApp != null)
             {
-                var apps = await appGraph.GetDAFApplications(details.EnterpriseAPIKey, state.ActiveApp.ID);
+                var apps = await appMgr.ListDAFApplications(details.EnterpriseAPIKey, state.ActiveApp.ID);
 
-                state.ActiveView = apps?.FirstOrDefault()?.JSONConvert<DAFViewConfiguration>();
+                state.ActiveView = apps?.Model?.FirstOrDefault()?.JSONConvert<DAFViewConfiguration>();
             }
             else
                 state.ActiveView = null;
@@ -72,25 +79,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             if (state.ActiveApp != null)
             {
-                view.ApplicationID = state.ActiveApp.ID;
+                var dafAppResp = await appDev.SaveDAFView(view, state.ActiveApp.ID, details.EnterpriseAPIKey);
 
-                //  TODO:   Probably need to expose this as an advanced setting in the future or something
-                if (view.BaseHref.IsNullOrEmpty())
-                    view.BaseHref = state.ActiveApp.PathRegex.TrimEnd('*') + '/';
-
-                if (view.ID.IsEmpty() && view.Priority <= 0)
-                    view.Priority = 500;
-
-                var status = Status.Success;
-
-                log.LogInformation($"Saving DAF App: {view.ToJSON()}");
-
-                status = await unpackView(view, details.EnterpriseAPIKey);
-
-                if (status)
-                {
-                    var dafApp = appGraph.SaveDAFApplication(details.EnterpriseAPIKey, view.JSONConvert<DAFApplicationConfiguration>()).Result;
-                }
+                state.ActiveView = dafAppResp.Model;
             }
 
             return await SetActiveApp(state.ActiveApp);
@@ -98,25 +89,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
 
         public virtual async Task<ConfigManagerState> SaveDataApp(Application app)
         {
-            app.EnterprisePrimaryAPIKey = details.EnterpriseAPIKey;
+            var appResp = await appDev.SaveApp(app, details.Host, "lcu-data-apps", details.EnterpriseAPIKey);
 
-            if (app.Hosts.IsNullOrEmpty())
-                app.Hosts = new List<string>();
-
-            if (!app.Hosts.Contains(details.Host))
-                app.Hosts.Add(details.Host);
-
-            if (app.ID.IsEmpty() && app.Priority <= 0 && !state.Applications.IsNullOrEmpty())
-                app.Priority = state.Applications.Max(a => a.Priority) + 500;
-
-            app.Container = "lcu-data-apps";
-
-            if (!app.PathRegex.EndsWith("*"))
-                app.PathRegex = $"{app.PathRegex}*";
-
-            app = await appGraph.Save(app);
-
-            return await SetActiveApp(app);
+            return await SetActiveApp(appResp.Model);
         }
 
         public virtual async Task<ConfigManagerState> SetActiveApp(Application app)
