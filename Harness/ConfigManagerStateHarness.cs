@@ -103,6 +103,13 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
             return await LoadAppView();
         }
 
+        public virtual async Task<ConfigManagerState> SetViewType(string viewType)
+        {
+            state.ActiveView.Metadata["ViewType"] = viewType;
+
+            return await SaveAppView(state.ActiveView);
+        }
+
         public virtual async Task<ConfigManagerState> ToggleAddNew(AddNewTypes type)
         {
             state.ActiveApp = null;
