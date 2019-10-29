@@ -31,6 +31,8 @@ namespace LCU.State.API.DataApps.ConfigManager
         {
             return await req.Manage<SetActiveAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
+                log.LogInformation($"Setting Active App: {reqData.App.Name}");
+
                 return await mgr.SetActiveApp(reqData.App);
             });
         }
