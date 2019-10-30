@@ -23,6 +23,8 @@ namespace LCU.State.API.DataApps.ConfigManager
             {
                 await mgr.Ensure();
 
+                log.LogInformation($"Refreshing.");
+
                 return await mgr.WhenAll(
                     mgr.LoadApplications()
                 );

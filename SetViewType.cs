@@ -30,6 +30,8 @@ namespace LCU.State.API.DataApps.ConfigManager
         {
             return await req.Manage<SetViewTypeRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
+                log.LogInformation($"Setting View Type: {reqData.ViewType}");
+
                 return await mgr.SetViewType(reqData.ViewType);
             });
         }

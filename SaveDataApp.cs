@@ -33,6 +33,8 @@ namespace LCU.State.API.DataApps.ConfigManager
             {
                 await mgr.SaveDataApp(reqData.App);
 
+                log.LogInformation($"Saving Data App: {reqData.App.Name}");
+
                 return await mgr.WhenAll(
                     mgr.LoadApplications()
                 );

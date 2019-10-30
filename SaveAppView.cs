@@ -31,6 +31,8 @@ namespace LCU.State.API.DataApps.ConfigManager
         {
             return await req.Manage<SaveAppViewRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
+                log.LogInformation($"Saving App View: {reqData.View.ID}");
+
                 return await mgr.SaveAppView(reqData.View);
             });
         }
