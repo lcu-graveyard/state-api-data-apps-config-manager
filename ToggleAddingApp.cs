@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using LCU.State.API.DataApps.ConfigManager.Harness;
+using Fathym.Design.Factory;
 
 namespace LCU.State.API.DataApps.ConfigManager
 {
@@ -26,9 +27,9 @@ namespace LCU.State.API.DataApps.ConfigManager
             [HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            return await req.Manage<SetActiveAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
+            return await req.Manage<ToggleAddingAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                log.LogInformation($"Toggling Adding App: {reqData.App.Name}");
+                log.LogInformation($"Toggling Adding App");
 
                 return await mgr.ToggleAddNew(AddNewTypes.App);
             });
