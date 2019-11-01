@@ -10,7 +10,6 @@ using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using LCU.State.API.DataApps.ConfigManager.Harness;
-using LCU.Graphs.Registry.Enterprises;
 using LCU.Graphs.Registry.Enterprises.Apps;
 
 namespace LCU.State.API.DataApps.ConfigManager
@@ -33,6 +32,8 @@ namespace LCU.State.API.DataApps.ConfigManager
             return await req.Manage<SaveDataAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
                 await mgr.SaveDataApp(reqData.App);
+
+                log.LogInformation($"Saving Data App: {reqData.App.Name}");
 
                 return await mgr.WhenAll(
                     mgr.LoadApplications()

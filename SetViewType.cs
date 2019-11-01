@@ -10,28 +10,29 @@ using Newtonsoft.Json;
 using System.Runtime.Serialization;
 using LCU.State.API.DataApps.ConfigManager.Models;
 using LCU.State.API.DataApps.ConfigManager.Harness;
-using Fathym.Design.Factory;
 
 namespace LCU.State.API.DataApps.ConfigManager
 {
     [Serializable]
     [DataContract]
-    public class ToggleAddingAppRequest
+    public class SetViewTypeRequest
     {
+        [DataMember]
+        public virtual string ViewType { get; set; }
     }
 
-    public static class ToggleAddingApp
+    public static class SetViewType
     {
-        [FunctionName("ToggleAddingApp")]
+        [FunctionName("SetViewType")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Admin, "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Admin, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            return await req.Manage<ToggleAddingAppRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
+            return await req.Manage<SetViewTypeRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                log.LogInformation($"Toggling Adding App");
+                log.LogInformation($"Setting View Type: {reqData.ViewType}");
 
-                return await mgr.ToggleAddNew(AddNewTypes.App);
+                return await mgr.SetViewType(reqData.ViewType);
             });
         }
     }
