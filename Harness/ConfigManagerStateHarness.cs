@@ -44,6 +44,9 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
         {
             state.Applications = new List<Application>();
 
+            if (!state.AppType.HasValue)
+                state.AppType = DAFAppTypes.View;
+
             if (state.ActiveApp != null)
                 await SetActiveApp(state.ActiveApp);
 
@@ -67,21 +70,54 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
             {
                 var apps = await appMgr.ListDAFApplications(details.EnterpriseAPIKey, state.ActiveApp.ID);
 
-                state.ActiveView = apps?.Model?.FirstOrDefault()?.JSONConvert<DAFViewConfiguration>();
+                state.ActiveDAFApp = apps?.Model?.FirstOrDefault()?.JSONConvert<DAFApplicationConfiguration>();
             }
             else
-                state.ActiveView = null;
+                state.ActiveDAFApp = null;
 
             return state;
         }
 
-        public virtual async Task<ConfigManagerState> SaveAppView(DAFViewConfiguration view)
+        public virtual async Task<ConfigManagerState> SaveAppView(DAFApplicationConfiguration dafApp)
         {
             if (state.ActiveApp != null)
             {
-                var dafAppResp = await appDev.SaveDAFView(view, state.ActiveApp.ID, details.EnterpriseAPIKey);
+                if (state.AppType != DAFAppTypes.API)
+                {
+                    if (dafApp.Metadata.ContainsKey("APIRoot"))
+                        dafApp.Metadata.Remove("APIRoot");
 
-                state.ActiveView = dafAppResp.Model;
+                    if (dafApp.Metadata.ContainsKey("InboundPath"))
+                        dafApp.Metadata.Remove("InboundPath");
+
+                    if (dafApp.Metadata.ContainsKey("Methods"))
+                        dafApp.Metadata.Remove("Methods");
+
+                    if (dafApp.Metadata.ContainsKey("Security"))
+                        dafApp.Metadata.Remove("Security");
+                }
+
+                if (state.AppType != DAFAppTypes.Redirect)
+                {
+                    if (dafApp.Metadata.ContainsKey("Redirect"))
+                        dafApp.Metadata.Remove("Redirect");
+                }
+
+                if (state.AppType != DAFAppTypes.View)
+                {
+                    if (dafApp.Metadata.ContainsKey("BaseHref"))
+                        dafApp.Metadata.Remove("BaseHref");
+
+                    if (dafApp.Metadata.ContainsKey("NPMPackage"))
+                        dafApp.Metadata.Remove("NPMPackage");
+
+                    if (dafApp.Metadata.ContainsKey("PackageVersion"))
+                        dafApp.Metadata.Remove("PackageVersion");
+                }
+
+                var dafAppResp = await appDev.SaveDAFApps(new[] { dafApp }.ToList(), state.ActiveApp.ID, details.EnterpriseAPIKey);
+
+                state.ActiveDAFApp = dafAppResp.Model?.FirstOrDefault();
             }
 
             return await SetActiveApp(state.ActiveApp);
@@ -103,11 +139,11 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
             return await LoadAppView();
         }
 
-        public virtual async Task<ConfigManagerState> SetViewType(string viewType)
+        public virtual async Task<ConfigManagerState> SetViewType(DAFAppTypes appType)
         {
-            state.ActiveView.Metadata["ViewType"] = viewType;
+            state.AppType = appType;
 
-            return await SaveAppView(state.ActiveView);
+            return state;
         }
 
         public virtual async Task<ConfigManagerState> ToggleAddNew(AddNewTypes type)

@@ -18,7 +18,7 @@ namespace LCU.State.API.DataApps.ConfigManager
     public class SetViewTypeRequest
     {
         [DataMember]
-        public virtual string ViewType { get; set; }
+        public virtual DAFAppTypes AppType { get; set; }
     }
 
     public static class SetViewType
@@ -30,9 +30,9 @@ namespace LCU.State.API.DataApps.ConfigManager
         {
             return await req.Manage<SetViewTypeRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                log.LogInformation($"Setting View Type: {reqData.ViewType}");
+                log.LogInformation($"Setting View Type: {reqData.AppType}");
 
-                return await mgr.SetViewType(reqData.ViewType);
+                return await mgr.SetViewType(reqData.AppType);
             });
         }
     }

@@ -19,7 +19,7 @@ namespace LCU.State.API.DataApps.ConfigManager
     public class SaveAppViewRequest
     {
         [DataMember]
-        public virtual DAFViewConfiguration View { get; set; }
+        public virtual DAFApplicationConfiguration DAFApp { get; set; }
     }
 
     public static class SaveAppView
@@ -31,9 +31,9 @@ namespace LCU.State.API.DataApps.ConfigManager
         {
             return await req.Manage<SaveAppViewRequest, ConfigManagerState, ConfigManagerStateHarness>(log, async (mgr, reqData) =>
             {
-                log.LogInformation($"Saving App View: {reqData.View.ID}");
+                log.LogInformation($"Saving App View: {reqData.DAFApp?.ID}");
 
-                return await mgr.SaveAppView(reqData.View);
+                return await mgr.SaveAppView(reqData.DAFApp);
             });
         }
     }
