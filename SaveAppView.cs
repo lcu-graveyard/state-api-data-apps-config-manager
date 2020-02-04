@@ -33,7 +33,7 @@ namespace LCU.State.API.DataApps.ConfigManager
             {
                 log.LogInformation($"Saving App View: {reqData.DAFApp?.ID}");
 
-                return await mgr.SaveAppView(reqData.DAFApp);
+                return await mgr.SaveDAFApp(reqData.DAFApp);
             });
         }
     }

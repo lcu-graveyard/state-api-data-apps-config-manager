@@ -71,6 +71,13 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
                 var apps = await appMgr.ListDAFApplications(details.EnterpriseAPIKey, state.ActiveApp.ID);
 
                 state.ActiveDAFApp = apps?.Model?.FirstOrDefault()?.JSONConvert<DAFApplicationConfiguration>();
+
+                if (state.ActiveDAFApp.Metadata.ContainsKey("APIRoot"))
+                    await SetViewType(DAFAppTypes.API);
+                else if (state.ActiveDAFApp.Metadata.ContainsKey("Redirect"))
+                    await SetViewType(DAFAppTypes.Redirect);
+                else if (state.ActiveDAFApp.Metadata.ContainsKey("BaseHref"))
+                    await SetViewType(DAFAppTypes.View);
             }
             else
                 state.ActiveDAFApp = null;
@@ -78,7 +85,7 @@ namespace LCU.State.API.DataApps.ConfigManager.Harness
             return state;
         }
 
-        public virtual async Task<ConfigManagerState> SaveAppView(DAFApplicationConfiguration dafApp)
+        public virtual async Task<ConfigManagerState> SaveDAFApp(DAFApplicationConfiguration dafApp)
         {
             if (state.ActiveApp != null)
             {
